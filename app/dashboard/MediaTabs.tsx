@@ -19,6 +19,8 @@ interface TrackResult {
    url: string;
 }
 
+import { MediaData } from "./MoodSelector";
+
 type TabKey = "music" | "watch" | "video";
 
 interface Tab {
@@ -34,14 +36,14 @@ const TABS: Tab[] = [
 ];
 
 interface MediaTabsProps {
-   tracks: TrackResult[];
-   playlist: PlaylistResult | null;
+   mediaData: MediaData | null;
+   isLoading: boolean;
    formatDuration: (ms: number) => string;
 }
 
 export default function MediaTabs({
-   tracks,
-   playlist,
+   mediaData,
+   isLoading,
    formatDuration,
 }: MediaTabsProps) {
    const [activeTab, setActiveTab] = useState<TabKey>("music");
@@ -71,38 +73,70 @@ export default function MediaTabs({
 
          {/* Tab Content with Crossfade */}
          <AnimatePresence mode="wait">
-            <motion.div
-               key={activeTab}
-               initial={{ opacity: 0, y: 8 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -8 }}
-               transition={{ duration: 0.25, ease: "easeInOut" }}
-            >
-               {activeTab === "music" && (
-                  <MusicPanel
-                     tracks={tracks}
-                     playlist={playlist}
-                     formatDuration={formatDuration}
-                  />
-               )}
-               {activeTab === "watch" && <WatchPanel />}
-               {activeTab === "video" && <VideoPanel />}
-            </motion.div>
+            {isLoading ? (
+               <motion.div
+                  key="loading"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+               >
+                  <SkeletonLoader />
+               </motion.div>
+            ) : (
+               <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+               >
+                  {activeTab === "music" && (
+                     <MusicPanel
+                        mediaData={mediaData}
+                        formatDuration={formatDuration}
+                     />
+                  )}
+                  {activeTab === "watch" && <WatchPanel mediaData={mediaData} />}
+                  {activeTab === "video" && <VideoPanel mediaData={mediaData} />}
+               </motion.div>
+            )}
          </AnimatePresence>
+      </div>
+   );
+}
+
+/* ─── Skeleton Loader ─── */
+function SkeletonLoader() {
+   return (
+      <div className="mt-4 space-y-4 animate-pulse">
+         <div className="glass-card p-6 mb-6">
+            <div className="h-4 bg-white/10 rounded w-1/4 mb-4" />
+            <div className="h-6 bg-white/10 rounded w-1/2 mb-2" />
+            <div className="h-4 bg-white/10 rounded w-1/3" />
+         </div>
+         {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/5">
+               <div className="w-10 h-10 rounded-md bg-white/10" />
+               <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-white/10 rounded w-3/4" />
+                  <div className="h-3 bg-white/10 rounded w-1/2" />
+               </div>
+            </div>
+         ))}
       </div>
    );
 }
 
 /* ─── Music Panel (existing Spotify track list) ─── */
 function MusicPanel({
-   tracks,
-   playlist,
+   mediaData,
    formatDuration,
 }: {
-   tracks: TrackResult[];
-   playlist: PlaylistResult | null;
+   mediaData: MediaData | null;
    formatDuration: (ms: number) => string;
 }) {
+   const tracks = mediaData?.tracks || [];
    if (tracks.length === 0) {
       return (
          <div className="glass-card p-10 text-center mt-4">
@@ -118,44 +152,20 @@ function MusicPanel({
       <div className="mt-4 animate-fade-in">
          {/* Playlist header card */}
          <div className="glass-card p-6 mb-6">
-            {playlist ? (
-               <div className="flex items-center justify-between">
-                  <div>
-                     <p className="text-xs text-white/40 uppercase tracking-widest mb-1">
-                        Playlist Created
-                     </p>
-                     <h3 className="text-lg font-bold gradient-text">
-                        {playlist.name}
-                     </h3>
-                     <p className="text-sm text-white/40 mt-1">
-                        {playlist.trackCount} tracks added to your Spotify
-                     </p>
-                  </div>
-                  <a
-                     href={playlist.url}
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     className="spotify-btn !py-2.5 !px-5 !text-sm no-underline"
-                  >
-                     Open in Spotify
-                  </a>
-               </div>
-            ) : (
-               <div>
-                  <div className="flex items-center gap-3 mb-2">
-                     <div className="w-3 h-3 rounded-full bg-[#1db954] animate-pulse" />
-                     <p className="text-xs text-white/40 uppercase tracking-widest">
-                        Your Mood Tracks
-                     </p>
-                  </div>
-                  <h3 className="text-lg font-bold gradient-text">
-                     {tracks.length} tracks curated for you
-                  </h3>
-                  <p className="text-sm text-white/30 mt-1">
-                     Click any track to play it on Spotify
+            <div>
+               <div className="flex items-center gap-3 mb-2">
+                  <div className="w-3 h-3 rounded-full bg-[#1db954] animate-pulse" />
+                  <p className="text-xs text-white/40 uppercase tracking-widest">
+                     Your Mood Tracks
                   </p>
                </div>
-            )}
+               <h3 className="text-lg font-bold gradient-text">
+                  {tracks.length} tracks curated for you
+               </h3>
+               <p className="text-sm text-white/30 mt-1">
+                  Click any track to play it on Spotify
+               </p>
+            </div>
          </div>
 
          {/* Track list */}
@@ -198,50 +208,79 @@ function MusicPanel({
    );
 }
 
-/* ─── Watch Panel (placeholder) ─── */
-function WatchPanel() {
-   return (
-      <div className="glass-card p-10 text-center mt-4">
-         <span className="text-4xl mb-4 block">🎬</span>
-         <h3 className="text-lg font-semibold text-white/80 mb-2">
-            Shows &amp; Movies
-         </h3>
-         <p className="text-white/40 text-sm max-w-sm mx-auto">
-            Mood-matched show and movie recommendations are coming soon.
-            We&apos;ll suggest the perfect binge based on how you feel.
-         </p>
-         <div className="grid grid-cols-3 gap-3 mt-6 opacity-30">
-            {[1, 2, 3].map((i) => (
-               <div
-                  key={i}
-                  className="aspect-[2/3] rounded-xl bg-white/5 border border-white/5"
-               />
-            ))}
+/* ─── Watch Panel (Movies/Shows) ─── */
+function WatchPanel({ mediaData }: { mediaData: MediaData | null }) {
+   const movies = mediaData?.movies || [];
+
+   if (movies.length === 0) {
+      return (
+         <div className="glass-card p-10 text-center mt-4">
+            <span className="text-4xl mb-4 block">🎬</span>
+            <p className="text-white/40 text-sm">
+               Select a mood and hit Generate to see your movie & show recommendations here.
+            </p>
          </div>
+      );
+   }
+
+   return (
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+         {movies.map((movie, idx) => (
+            <div
+               key={idx}
+               className="glass-card p-5 hover:bg-white/[0.06] transition-colors duration-300"
+            >
+               <h3 className="text-lg font-bold gradient-text mb-2">
+                  {movie.title}
+               </h3>
+               <p className="text-sm text-white/50 leading-relaxed">
+                  {movie.synopsis}
+               </p>
+            </div>
+         ))}
       </div>
    );
 }
 
-/* ─── Video Panel (placeholder) ─── */
-function VideoPanel() {
-   return (
-      <div className="glass-card p-10 text-center mt-4">
-         <span className="text-4xl mb-4 block">▶️</span>
-         <h3 className="text-lg font-semibold text-white/80 mb-2">
-            YouTube Videos
-         </h3>
-         <p className="text-white/40 text-sm max-w-sm mx-auto">
-            Mood-driven YouTube video suggestions are on the way.
-            Chill playlists, lo-fi streams, and more — matched to your vibe.
-         </p>
-         <div className="grid grid-cols-2 gap-3 mt-6 opacity-30">
-            {[1, 2].map((i) => (
-               <div
-                  key={i}
-                  className="aspect-video rounded-xl bg-white/5 border border-white/5"
-               />
-            ))}
+/* ─── Video Panel (YouTube) ─── */
+function VideoPanel({ mediaData }: { mediaData: MediaData | null }) {
+   const videos = mediaData?.videos || [];
+
+   if (videos.length === 0) {
+      return (
+         <div className="glass-card p-10 text-center mt-4">
+            <span className="text-4xl mb-4 block">▶️</span>
+            <p className="text-white/40 text-sm">
+               Select a mood and hit Generate to see your YouTube video recommendations here.
+            </p>
          </div>
+      );
+   }
+
+   return (
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fade-in">
+         {videos.map((video, idx) => (
+            <div
+               key={idx}
+               className="group relative flex flex-col gap-3 rounded-2xl overflow-hidden transition-transform duration-300 hover:scale-[1.02]"
+            >
+               <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50 border border-white/10 shadow-lg">
+                  <iframe
+                     src={`https://www.youtube.com/embed/${video.videoId}`}
+                     title={video.title}
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                     allowFullScreen
+                     className="absolute top-0 left-0 w-full h-full border-0"
+                  />
+               </div>
+               <div className="px-1">
+                  <h4 className="text-sm font-semibold text-white/90 line-clamp-2 leading-snug group-hover:text-white transition-colors">
+                     {video.title}
+                  </h4>
+                  <p className="text-xs text-white/40 mt-1">{video.channel}</p>
+               </div>
+            </div>
+         ))}
       </div>
    );
 }

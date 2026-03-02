@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MOODS, Mood } from "@/lib/spotify";
 import MediaTabs from "./MediaTabs";
-
-interface PlaylistResult {
-   name: string;
-   url: string;
-   trackCount: number;
-}
 
 interface TrackResult {
    name: string;
@@ -19,43 +12,62 @@ interface TrackResult {
    url: string;
 }
 
+interface MovieResult {
+   title: string;
+   synopsis: string;
+}
+
+interface VideoResult {
+   videoId: string;
+   title: string;
+   description: string;
+   thumbnail: string;
+   channel: string;
+   url: string;
+}
+
+export interface MediaData {
+   tracks: TrackResult[];
+   movies: MovieResult[];
+   videos: VideoResult[];
+}
+
 export default function MoodSelector() {
-   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
-   const [isGenerating, setIsGenerating] = useState(false);
-   const [playlist, setPlaylist] = useState<PlaylistResult | null>(null);
-   const [tracks, setTracks] = useState<TrackResult[]>([]);
+   const [userInput, setUserInput] = useState("");
+   const [isLoading, setIsLoading] = useState(false);
    const [error, setError] = useState<string | null>(null);
+   const [mediaData, setMediaData] = useState<MediaData | null>(null);
 
    const handleGenerate = async () => {
-      if (!selectedMood) return;
+      const trimmedInput = userInput.trim();
+      if (!trimmedInput) return;
 
-      setIsGenerating(true);
+      setIsLoading(true);
       setError(null);
-      setPlaylist(null);
-      setTracks([]);
+      setMediaData(null);
 
       try {
-         const res = await fetch("/api/playlist/generate", {
+         const res = await fetch("/api/orchestrator", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mood: selectedMood }),
+            body: JSON.stringify({ user_mood: trimmedInput }),
          });
 
          const data = await res.json();
 
          if (!res.ok) {
-            throw new Error(data.error || "Failed to generate playlist");
+            throw new Error(data.error || "Failed to analyze vibe");
          }
 
-         setPlaylist(data.playlist);
-         setTracks(data.tracks);
+         setMediaData(data as MediaData);
       } catch (err: unknown) {
          setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
-         setIsGenerating(false);
+         setIsLoading(false);
       }
    };
 
+   // Format MS duration to M:SS
    const formatDuration = (ms: number) => {
       const minutes = Math.floor(ms / 60000);
       const seconds = Math.floor((ms % 60000) / 1000);
@@ -64,71 +76,32 @@ export default function MoodSelector() {
 
    return (
       <div className="w-full max-w-2xl mx-auto">
-         {/* Mood Grid */}
-         <div className="grid grid-cols-3 gap-3 mb-8">
-            {MOODS.map((mood) => (
-               <button
-                  key={mood.key}
-                  onClick={() => {
-                     setSelectedMood(mood.key);
-                     setPlaylist(null);
-                     setTracks([]);
-                     setError(null);
-                  }}
-                  className={`mood-btn group relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${selectedMood === mood.key
-                     ? "border-white/30 bg-white/10 scale-[1.02] shadow-lg"
-                     : "border-white/5 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/10"
-                     }`}
-                  style={
-                     selectedMood === mood.key
-                        ? {
-                           boxShadow: `0 0 40px ${mood.color}20, 0 0 80px ${mood.color}10`,
-                        }
-                        : {}
-                  }
-               >
-                  {/* Glow effect behind emoji */}
-                  <div
-                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                     style={{
-                        background: `radial-gradient(circle at center, ${mood.color}15 0%, transparent 70%)`,
-                     }}
-                  />
-                  <div className="relative z-10 flex flex-col items-center gap-2">
-                     <span className="text-3xl">{mood.emoji}</span>
-                     <span
-                        className="text-sm font-medium transition-colors duration-300"
-                        style={{
-                           color: selectedMood === mood.key ? mood.color : "rgba(255,255,255,0.5)",
-                        }}
-                     >
-                        {mood.label}
-                     </span>
-                  </div>
-               </button>
-            ))}
+         {/* Text Input Area */}
+         <div className="mb-6">
+            <textarea
+               value={userInput}
+               onChange={(e) => setUserInput(e.target.value)}
+               placeholder="How are you feeling right now? (e.g., 'feeling nostalgic on a rainy night', 'need hype music for a workout')"
+               className="w-full h-32 p-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:border-[#1db954]/50 focus:ring-1 focus:ring-[#1db954]/50 transition-all resize-none shadow-inner"
+            />
          </div>
 
          {/* Generate Button */}
          <button
             onClick={handleGenerate}
-            disabled={!selectedMood || isGenerating}
-            className={`w-full py-4 rounded-2xl font-semibold text-base transition-all duration-300 ${!selectedMood || isGenerating
+            disabled={!userInput.trim() || isLoading}
+            className={`w-full py-4 rounded-2xl font-semibold text-base transition-all duration-300 ${!userInput.trim() || isLoading
                ? "bg-white/5 text-white/20 cursor-not-allowed"
                : "spotify-btn"
                }`}
          >
-            {isGenerating ? (
+            {isLoading ? (
                <span className="inline-flex items-center gap-3">
                   <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Crafting your playlist...
+                  Analyzing Aura...
                </span>
-            ) : selectedMood ? (
-               `Generate ${MOODS.find((m) => m.key === selectedMood)?.emoji
-               } ${MOODS.find((m) => m.key === selectedMood)?.label
-               } Playlist`
             ) : (
-               "Select a mood to begin"
+               "Generate Vibe"
             )}
          </button>
 
@@ -141,10 +114,11 @@ export default function MoodSelector() {
 
          {/* Media Hub Tabs */}
          <MediaTabs
-            tracks={tracks}
-            playlist={playlist}
+            mediaData={mediaData}
+            isLoading={isLoading}
             formatDuration={formatDuration}
          />
       </div>
    );
 }
+
