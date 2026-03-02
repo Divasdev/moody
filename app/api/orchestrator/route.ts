@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 const SPOTIFY_API_BASE = "https://api.spotify.com/v1";
-const AURA_ENGINE_URL = "http://127.0.0.1:8000/api/v1/recommend";
+const AURA_ENGINE_URL = "https://aura-engine-xk5e.onrender.com/api/v1/recommend";
 
 // ─── Types ────────────────────────────────────────────────────
 interface AuraResponse {
