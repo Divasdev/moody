@@ -4,21 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface PlaylistResult {
-   name: string;
-   url: string;
-   trackCount: number;
-}
-
-interface TrackResult {
-   name: string;
-   artists: string;
-   album: string;
-   albumArt: string;
-   duration: number;
-   url: string;
-}
-
 import { MediaData } from "./MoodSelector";
 
 type TabKey = "music" | "watch" | "video";
