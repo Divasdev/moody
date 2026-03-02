@@ -3,6 +3,7 @@
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -24,6 +25,20 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
+      {/* Breathing Mesh Gradient */}
+      <motion.div
+        className="mesh-gradient"
+        animate={{
+          scale: [1, 1.05, 1, 0.97, 1],
+          opacity: [0.6, 0.8, 0.6, 0.75, 0.6],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
       {/* Floating Orbs */}
       <div className="orb orb-1" />
       <div className="orb orb-2" />
@@ -43,10 +58,15 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Title */}
-        <h1 className="animate-fade-in-delay-1 text-6xl sm:text-7xl md:text-8xl font-bold tracking-tight mb-6">
+        {/* Title — animates in from bottom */}
+        <motion.h1
+          className="text-6xl sm:text-7xl md:text-8xl font-bold tracking-tight mb-6"
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.25, ease: "easeOut" }}
+        >
           <span className="gradient-text">Moodify</span>
-        </h1>
+        </motion.h1>
 
         {/* Subtitle */}
         <p className="animate-fade-in-delay-2 text-lg sm:text-xl text-white/50 max-w-lg mb-12 leading-relaxed font-[family-name:var(--font-geist-sans)]">
@@ -67,8 +87,13 @@ export default function Home() {
           </button>
         </div>
 
+        {/* Trust Text */}
+        <p className="animate-fade-in-delay-3 mt-4 text-xs text-white/30 tracking-wide">
+          Powered by the official Spotify API
+        </p>
+
         {/* Footer Tagline */}
-        <p className="animate-fade-in-delay-3 mt-16 text-xs text-white/20 tracking-widest uppercase">
+        <p className="animate-fade-in-delay-3 mt-12 text-xs text-white/20 tracking-widest uppercase">
           Your mood. Your music. Your moment.
         </p>
       </div>

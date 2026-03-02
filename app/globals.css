@@ -22,34 +22,57 @@ body {
   overflow-x: hidden;
 }
 
+/* =================== Breathing Mesh Gradient =================== */
+.mesh-gradient {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(88, 28, 135, 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(6, 78, 59, 0.4) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 80%, rgba(0, 0, 0, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse at 70% 60%, rgba(59, 7, 100, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* =================== Animated Background Orbs =================== */
 @keyframes float {
+
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
+
   25% {
     transform: translate(30px, -50px) scale(1.1);
   }
+
   50% {
     transform: translate(-20px, 20px) scale(0.95);
   }
+
   75% {
     transform: translate(50px, 30px) scale(1.05);
   }
 }
 
 @keyframes float-reverse {
+
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
+
   25% {
     transform: translate(-40px, 30px) scale(1.05);
   }
+
   50% {
     transform: translate(30px, -40px) scale(0.9);
   }
+
   75% {
     transform: translate(-20px, -30px) scale(1.1);
   }
@@ -100,16 +123,6 @@ body {
 }
 
 /* =================== Spotify Button =================== */
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(29, 185, 84, 0.3), 0 0 60px rgba(29, 185, 84, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(29, 185, 84, 0.5), 0 0 80px rgba(29, 185, 84, 0.2);
-  }
-}
-
 .spotify-btn {
   position: relative;
   display: inline-flex;
@@ -124,14 +137,13 @@ body {
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: pulse-glow 3s ease-in-out infinite;
   letter-spacing: 0.02em;
 }
 
 .spotify-btn:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
   background: #1ed760;
-  box-shadow: 0 0 40px rgba(29, 185, 84, 0.6), 0 0 100px rgba(29, 185, 84, 0.3);
+  box-shadow: 0 0 20px rgba(29, 185, 84, 0.4), 0 0 60px rgba(29, 185, 84, 0.15);
 }
 
 .spotify-btn:active {
@@ -155,11 +167,63 @@ body {
   border-radius: 24px;
 }
 
+/* =================== Media Tab Bar =================== */
+.media-tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.media-tab {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.media-tab:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.media-tab-active {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.media-tab-indicator {
+  position: absolute;
+  bottom: 4px;
+  left: 25%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, #7c3aed, #1db954);
+  border-radius: 2px;
+}
+
 /* =================== Profile Glow Ring =================== */
 @keyframes rotate-glow {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -170,14 +234,12 @@ body {
   display: inline-block;
   border-radius: 50%;
   padding: 4px;
-  background: conic-gradient(
-    from 0deg,
-    #7c3aed,
-    #ec4899,
-    #1db954,
-    #3b82f6,
-    #7c3aed
-  );
+  background: conic-gradient(from 0deg,
+      #7c3aed,
+      #ec4899,
+      #1db954,
+      #3b82f6,
+      #7c3aed);
   animation: rotate-glow 6s linear infinite;
 }
 
@@ -193,6 +255,7 @@ body {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -223,18 +286,17 @@ body {
   from {
     background-position: -200% center;
   }
+
   to {
     background-position: 200% center;
   }
 }
 
 .shimmer-text {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.4) 0%,
-    rgba(255, 255, 255, 0.8) 50%,
-    rgba(255, 255, 255, 0.4) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.8) 50%,
+      rgba(255, 255, 255, 0.4) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
